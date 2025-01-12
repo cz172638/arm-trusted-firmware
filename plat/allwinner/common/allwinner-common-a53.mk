@@ -8,7 +8,8 @@ include drivers/arm/gic/v2/gicv2.mk
 
 BL31_SOURCES		+=	${GICV2_SOURCES}			\
 				lib/cpus/${ARCH}/cortex_a53.S		\
-				plat/common/plat_gicv2.c
+				plat/common/plat_gicv2.c		\
+				${AW_PLAT}/common/sunxi_gicv2.c
 
 # Enable workarounds for Cortex-A53 errata. Allwinner uses at least r0p4.
 ERRATA_A53_835769		:=	1

@@ -14,7 +14,6 @@
 #include <arch_helpers.h>
 #include <common/debug.h>
 #include <common/fdt_fixup.h>
-#include <drivers/arm/gicv2.h>
 #include <drivers/console.h>
 #include <drivers/generic_delay_timer.h>
 #include <drivers/ti/uart/uart_16550.h>
@@ -22,6 +21,7 @@
 #include <plat/common/platform.h>
 
 #include <sunxi_def.h>
+#include <sunxi_gic.h>
 #include <sunxi_mmap.h>
 #include <sunxi_private.h>
 
@@ -32,11 +32,6 @@ static entry_point_info_t bl33_image_ep_info;
 static console_t console;
 
 static void *fdt;
-
-static const gicv2_driver_data_t sunxi_gic_data = {
-	.gicd_base = SUNXI_GICD_BASE,
-	.gicc_base = SUNXI_GICC_BASE,
-};
 
 /*
  * Try to find a DTB loaded in memory by previous stages.
@@ -153,10 +148,7 @@ void bl31_platform_setup(void)
 	}
 
 	/* Configure the interrupt controller */
-	gicv2_driver_init(&sunxi_gic_data);
-	gicv2_distif_init();
-	gicv2_pcpu_distif_init();
-	gicv2_cpuif_enable();
+	sunxi_gic_init();
 
 	sunxi_security_setup();
 

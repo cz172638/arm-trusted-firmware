@@ -11,10 +11,10 @@
 #include <arch_helpers.h>
 #include <common/debug.h>
 #include <drivers/arm/css/css_scpi.h>
-#include <drivers/arm/gicv2.h>
 #include <lib/mmio.h>
 #include <lib/psci/psci.h>
 
+#include <sunxi_gic.h>
 #include <sunxi_mmap.h>
 #include <sunxi_private.h>
 
@@ -75,7 +75,7 @@ static void sunxi_pwr_domain_off(const psci_power_state_t *target_state)
 	plat_local_state_t system_pwr_state  = SYSTEM_PWR_STATE(target_state);
 
 	if (is_local_state_off(cpu_pwr_state)) {
-		gicv2_cpuif_disable();
+		sunxi_gic_cpu_disable();
 	}
 
 	scpi_set_css_power_state(read_mpidr(),
@@ -87,11 +87,10 @@ static void sunxi_pwr_domain_off(const psci_power_state_t *target_state)
 static void sunxi_pwr_domain_on_finish(const psci_power_state_t *target_state)
 {
 	if (is_local_state_off(SYSTEM_PWR_STATE(target_state))) {
-		gicv2_distif_init();
+		sunxi_gic_distif_init();
 	}
 	if (is_local_state_off(CPU_PWR_STATE(target_state))) {
-		gicv2_pcpu_distif_init();
-		gicv2_cpuif_enable();
+		sunxi_gic_cpu_enable();
 	}
 }
 
@@ -99,7 +98,7 @@ static void sunxi_system_off(void)
 {
 	uint32_t ret;
 
-	gicv2_cpuif_disable();
+	sunxi_gic_cpu_disable();
 
 	/* Send the power down request to the SCP. */
 	ret = scpi_sys_power_state(scpi_system_shutdown);
@@ -112,7 +111,7 @@ static void sunxi_system_reset(void)
 {
 	uint32_t ret;
 
-	gicv2_cpuif_disable();
+	sunxi_gic_cpu_disable();
 
 	/* Send the system reset request to the SCP. */
 	ret = scpi_sys_power_state(scpi_system_reboot);
@@ -128,7 +127,7 @@ static int sunxi_system_reset2(int is_vendor, int reset_type, u_register_t cooki
 	if (is_vendor || (reset_type != PSCI_RESET2_SYSTEM_WARM_RESET))
 		return PSCI_E_NOT_SUPPORTED;
 
-	gicv2_cpuif_disable();
+	sunxi_gic_cpu_disable();
 
 	/* Send the system reset request to the SCP. */
 	ret = scpi_sys_power_state(scpi_system_reset);
