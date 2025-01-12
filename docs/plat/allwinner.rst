@@ -23,6 +23,8 @@ There is one build target per supported SoC:
 +-------------------+-------------------------------+
 | sun50i_r329       | R329                          |
 +-------------------+-------------------------------+
+| sun55i_a523       | A523, A527, T527, H728        |
++-------------------+-------------------------------+
 
 To build with the default settings for a particular SoC:
 
@@ -86,8 +88,14 @@ See the respective `U-Boot documentation`_ for more details.
 Memory layout
 -------------
 
-A64, H5 and H6 SoCs
-~~~~~~~~~~~~~~~~~~~
+A64, H5, H6, and A523 SoCs
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On the A523, SRAM A2 is 144 KB, with U-Boot SPL loaded into the lower section.
+BL31 is loaded at offset 0x14000 (0x00054000), using ``SEPARATE_NOBITS_REGION := 1``
+so that uninitialized data (BSS and stacks) resides in SRAM A1
+(0x00021000–0x00040000).
+
 
 BL31 lives in SRAM A2, which is documented to be accessible from secure
 world only. Since this SRAM region is very limited (48 KB), we take
