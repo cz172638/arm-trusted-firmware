@@ -37,4 +37,21 @@ void sunxi_security_setup(void)
 
 	/* Set all DMA channels (16 max.) to non-secure */
 	mmio_write_32(SUNXI_DMA_BASE + DMA_SEC_REG, 0xffff);
+
+	/* Some SoCs feature more protection bits in the PRCM block */
+#ifdef SUNXI_R_TZMA_BASE
+	mmio_write_32(SUNXI_R_TZMA_BASE + 0, 0);
+	mmio_write_32(SUNXI_R_TZMA_BASE + 4, 0);
+	mmio_write_32(SUNXI_R_TZMA_BASE + 8, 0);
+#endif
+
+#ifdef SUNXI_R_SPC_BASE
+	mmio_write_32(SUNXI_R_SPC_BASE + 0x04, 0xffffffff);
+	mmio_write_32(SUNXI_R_SPC_BASE + 0x14, 0xffffffff);
+	mmio_write_32(SUNXI_R_SPC_BASE + 0x24, 0xffffffff);
+#endif
+
+#ifdef SUNXI_DSP_PRCM_BASE
+	mmio_write_32(SUNXI_DSP_PRCM_BASE + 8, 7);
+#endif
 }

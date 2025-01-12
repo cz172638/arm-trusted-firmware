@@ -18,6 +18,7 @@
 #include <drivers/generic_delay_timer.h>
 #include <drivers/ti/uart/uart_16550.h>
 #include <lib/mmio.h>
+#include <plat/arm/common/plat_arm.h>
 #include <plat/common/platform.h>
 
 #include <sunxi_def.h>
@@ -31,6 +32,13 @@ static entry_point_info_t bl33_image_ep_info;
 static console_t console;
 
 static void *fdt;
+
+#if USE_GIC_DRIVER == 3
+static const uintptr_t sunxi_gicr_base_addrs[2] = {
+	SUNXI_GICR_BASE,
+	0U
+};
+#endif
 
 /*
  * Try to find a DTB loaded in memory by previous stages.
@@ -126,6 +134,9 @@ void bl31_platform_setup(void)
 	case SUNXI_SOC_R329:
 		soc_name = "R329";
 		break;
+	case SUNXI_SOC_A523:
+		soc_name = "A523";
+		break;
 	default:
 		soc_name = "unknown";
 		break;
@@ -168,6 +179,10 @@ void bl31_platform_setup(void)
 		mmio_write_32(SUNXI_CCU_BASE + 0x5c, 0x1);
 
 	sunxi_pmic_setup(soc_id, fdt);
+
+#if USE_GIC_DRIVER == 3
+	gic_set_gicr_frames(sunxi_gicr_base_addrs);
+#endif
 
 	INFO("BL31: Platform setup done\n");
 }

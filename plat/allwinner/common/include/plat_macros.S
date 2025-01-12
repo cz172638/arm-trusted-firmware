@@ -19,7 +19,11 @@
 	 * ---------------------------------------------
 	 */
 	.macro plat_crash_print_regs
+#if USE_GIC_DRIVER == 3
+	mov_imm	x17, SUNXI_GICR_BASE
+#else
 	mov_imm	x17, SUNXI_GICC_BASE
+#endif
 	mov_imm	x16, SUNXI_GICD_BASE
 	arm_print_gic_regs
 	.endm
