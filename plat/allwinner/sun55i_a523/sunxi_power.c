@@ -23,5 +23,5 @@ void sunxi_power_down(void)
 
 void sunxi_cpu_power_off_self(void)
 {
-	/* TODO: It's still unknown whether CPUIDLE exists on R329 */
+	sunxi_cpu_off(read_mpidr());
 }

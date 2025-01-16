@@ -34,9 +34,14 @@ endfunc plat_crash_console_flush
 
 func plat_my_core_pos
 	mrs	x0, mpidr_el1
+#ifdef SUNXI_NEW_MPIDR_FMT
+	mov	x1, #0xff
+	and	x0, x1, x0, LSR #8
+#else
 	and	x1, x0, #MPIDR_CLUSTER_MASK
 	and	x0, x0, #MPIDR_CPU_MASK
 	add	x0, x0, x1, LSR #6
+#endif
 	ret
 endfunc plat_my_core_pos
 

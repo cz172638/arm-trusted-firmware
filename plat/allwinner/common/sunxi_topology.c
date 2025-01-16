@@ -20,11 +20,17 @@ static const unsigned char plat_power_domain_tree_desc[PLAT_MAX_PWR_LVL + 1] = {
 
 int plat_core_pos_by_mpidr(u_register_t mpidr)
 {
-	unsigned int cluster = MPIDR_AFFLVL1_VAL(mpidr);
-	unsigned int core = MPIDR_AFFLVL0_VAL(mpidr);
+	unsigned int cluster, core;
+
+#ifdef SUNXI_NEW_MPIDR_FMT
+	cluster = MPIDR_AFFLVL2_VAL(mpidr);
+	core = MPIDR_AFFLVL1_VAL(mpidr);
+#else
+	cluster = MPIDR_AFFLVL1_VAL(mpidr);
+	core = MPIDR_AFFLVL0_VAL(mpidr);
+#endif
 
 	if (MPIDR_AFFLVL3_VAL(mpidr) > 0 ||
-	    MPIDR_AFFLVL2_VAL(mpidr) > 0 ||
 	    cluster >= PLATFORM_CLUSTER_COUNT ||
 	    core >= PLATFORM_MAX_CPUS_PER_CLUSTER) {
 		return -1;
