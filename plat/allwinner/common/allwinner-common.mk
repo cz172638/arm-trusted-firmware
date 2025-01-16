@@ -99,3 +99,7 @@ SEPARATE_CODE_AND_RODATA	:=	1
 
 # BL31 gets loaded alongside BL33 (U-Boot) by U-Boot's SPL
 RESET_TO_BL31			:=	1
+
+# Most Allwinner SoCs have 4 cores, but not all
+PLATFORM_MAX_CPUS_PER_CLUSTER	?=	4
+$(eval $(call add_define,PLATFORM_MAX_CPUS_PER_CLUSTER))
