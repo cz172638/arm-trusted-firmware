@@ -18,6 +18,9 @@
 #define SUNXI_WDOG0_CFG_REG		(SUNXI_R_WDOG_BASE + 0x0014)
 #define SUNXI_WDOG0_MODE_REG		(SUNXI_R_WDOG_BASE + 0x0018)
 
+/* new watchdog allows direct reboot */
+#define SUNXI_WDOG0_SRST_REG		(SUNXI_R_WDOG_BASE + 0x0008)
+
 static int sunxi_pwr_domain_on(u_register_t mpidr)
 {
 	sunxi_cpu_on(mpidr);
@@ -53,12 +56,16 @@ static void __dead2 sunxi_system_reset(void)
 {
 	sunxi_gic_cpu_disable();
 
+#ifdef SUNXI_STANDALONE_WATCHDOG
+	mmio_write_32(SUNXI_WDOG0_SRST_REG, 0x16aa0001);
+#else
 	/* Reset the whole system when the watchdog times out */
 	mmio_write_32(SUNXI_WDOG0_CFG_REG, 1);
 	/* Enable the watchdog with the shortest timeout (0.5 seconds) */
 	mmio_write_32(SUNXI_WDOG0_MODE_REG, (0 << 4) | 1);
 	/* Wait for twice the watchdog timeout before panicking */
 	mdelay(1000);
+#endif
 
 	ERROR("PSCI: System reset failed\n");
 	panic();

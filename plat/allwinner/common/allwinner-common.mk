@@ -108,3 +108,8 @@ RESET_TO_BL31			:=	1
 # Most Allwinner SoCs have 4 cores, but not all
 PLATFORM_MAX_CPUS_PER_CLUSTER	?=	4
 $(eval $(call add_define,PLATFORM_MAX_CPUS_PER_CLUSTER))
+
+# Some Allwinner SoCs have standalone watchdog core
+SUNXI_STANDALONE_WATCHDOG	?=	0
+$(eval $(call assert_boolean,SUNXI_STANDALONE_WATCHDOG))
+$(eval $(call add_define,SUNXI_STANDALONE_WATCHDOG))
