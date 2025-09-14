@@ -18,19 +18,25 @@ static const unsigned char plat_power_domain_tree_desc[PLAT_MAX_PWR_LVL + 1] = {
 	PLATFORM_MAX_CPUS_PER_CLUSTER,
 };
 
+/*
+ * All Allwinner SoCs place all their cores in one affinity level. Which one
+ * this is just differs depending on whether they use the "new" MPDIR encoding
+ * (cores in Aff1, clusters in Aff2) or the traditional one (cores in Aff0).
+ */
 int plat_core_pos_by_mpidr(u_register_t mpidr)
 {
-	unsigned int cluster = MPIDR_AFFLVL1_VAL(mpidr);
-	unsigned int core = MPIDR_AFFLVL0_VAL(mpidr);
+	if (!(read_mpidr() & MPIDR_MT_MASK)) {
+		mpidr <<= MPIDR_AFFINITY_BITS;
+	}
 
-	if (MPIDR_AFFLVL3_VAL(mpidr) > 0 ||
+	if (MPIDR_AFFLVL0_VAL(mpidr) > 0 ||
+	    MPIDR_AFFLVL1_VAL(mpidr) >= PLATFORM_CORE_COUNT ||
 	    MPIDR_AFFLVL2_VAL(mpidr) > 0 ||
-	    cluster >= PLATFORM_CLUSTER_COUNT ||
-	    core >= PLATFORM_MAX_CPUS_PER_CLUSTER) {
+	    MPIDR_AFFLVL3_VAL(mpidr) > 0) {
 		return -1;
 	}
 
-	return cluster * PLATFORM_MAX_CPUS_PER_CLUSTER + core;
+	return MPIDR_AFFLVL1_VAL(mpidr);
 }
 
 const unsigned char *plat_get_power_domain_tree_desc(void)
