@@ -32,11 +32,14 @@ func plat_crash_console_flush
 	ret
 endfunc plat_crash_console_flush
 
+/* All Allwinner SoCs group all their cores in one affinity level */
 func plat_my_core_pos
 	mrs	x0, mpidr_el1
-	and	x1, x0, #MPIDR_CLUSTER_MASK
-	and	x0, x0, #MPIDR_CPU_MASK
-	add	x0, x0, x1, LSR #6
+	/* shift MPIDR left by 8 bits if needed to always place cores in Aff1 */
+	tst	x0, #MPIDR_MT_MASK
+	lsl	x1, x0, #MPIDR_AFFINITY_BITS
+	csel	x1, x1, x0, eq
+	ubfx	x0, x1, #MPIDR_AFF1_SHIFT, #MPIDR_AFFINITY_BITS
 	ret
 endfunc plat_my_core_pos
 
