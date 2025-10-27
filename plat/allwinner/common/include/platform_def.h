@@ -81,4 +81,7 @@
 #endif
 #endif
 
+#define PLAT_ARM_GICD_BASE		SUNXI_GICD_BASE
+#define PLAT_ARM_GICC_BASE		SUNXI_GICC_BASE
+
 #endif /* PLATFORM_DEF_H */

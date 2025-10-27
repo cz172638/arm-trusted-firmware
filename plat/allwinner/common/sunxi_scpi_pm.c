@@ -11,7 +11,7 @@
 #include <arch_helpers.h>
 #include <common/debug.h>
 #include <drivers/arm/css/css_scpi.h>
-#include <drivers/arm/gicv2.h>
+#include <drivers/arm/gic.h>
 #include <lib/mmio.h>
 #include <lib/psci/psci.h>
 
@@ -74,9 +74,19 @@ static void sunxi_pwr_domain_off(const psci_power_state_t *target_state)
 	plat_local_state_t cluster_pwr_state = CLUSTER_PWR_STATE(target_state);
 	plat_local_state_t system_pwr_state  = SYSTEM_PWR_STATE(target_state);
 
-	if (is_local_state_off(cpu_pwr_state)) {
-		gicv2_cpuif_disable();
-	}
+	scpi_set_css_power_state(read_mpidr(),
+				 cpu_pwr_state,
+				 cluster_pwr_state,
+				 system_pwr_state);
+}
+
+static void sunxi_pwr_domain_suspend(const psci_power_state_t *target_state)
+{
+	plat_local_state_t cpu_pwr_state     = CPU_PWR_STATE(target_state);
+	plat_local_state_t cluster_pwr_state = CLUSTER_PWR_STATE(target_state);
+	plat_local_state_t system_pwr_state  = SYSTEM_PWR_STATE(target_state);
+
+	gic_save();
 
 	scpi_set_css_power_state(read_mpidr(),
 				 cpu_pwr_state,
@@ -86,20 +96,17 @@ static void sunxi_pwr_domain_off(const psci_power_state_t *target_state)
 
 static void sunxi_pwr_domain_on_finish(const psci_power_state_t *target_state)
 {
-	if (is_local_state_off(SYSTEM_PWR_STATE(target_state))) {
-		gicv2_distif_init();
-	}
-	if (is_local_state_off(CPU_PWR_STATE(target_state))) {
-		gicv2_pcpu_distif_init();
-		gicv2_cpuif_enable();
-	}
+
+}
+
+static void sunxi_pwr_domain_suspend_finish(const psci_power_state_t *target_state)
+{
+	gic_resume();
 }
 
 static void sunxi_system_off(void)
 {
 	uint32_t ret;
-
-	gicv2_cpuif_disable();
 
 	/* Send the power down request to the SCP. */
 	ret = scpi_sys_power_state(scpi_system_shutdown);
@@ -111,8 +118,6 @@ static void sunxi_system_off(void)
 static void sunxi_system_reset(void)
 {
 	uint32_t ret;
-
-	gicv2_cpuif_disable();
 
 	/* Send the system reset request to the SCP. */
 	ret = scpi_sys_power_state(scpi_system_reboot);
@@ -127,8 +132,6 @@ static int sunxi_system_reset2(int is_vendor, int reset_type, u_register_t cooki
 
 	if (is_vendor || (reset_type != PSCI_RESET2_SYSTEM_WARM_RESET))
 		return PSCI_E_NOT_SUPPORTED;
-
-	gicv2_cpuif_disable();
 
 	/* Send the system reset request to the SCP. */
 	ret = scpi_sys_power_state(scpi_system_reset);
@@ -190,9 +193,9 @@ static const plat_psci_ops_t sunxi_scpi_psci_ops = {
 	.cpu_standby			= sunxi_cpu_standby,
 	.pwr_domain_on			= sunxi_pwr_domain_on,
 	.pwr_domain_off			= sunxi_pwr_domain_off,
-	.pwr_domain_suspend		= sunxi_pwr_domain_off,
+	.pwr_domain_suspend		= sunxi_pwr_domain_suspend,
 	.pwr_domain_on_finish		= sunxi_pwr_domain_on_finish,
-	.pwr_domain_suspend_finish	= sunxi_pwr_domain_on_finish,
+	.pwr_domain_suspend_finish	= sunxi_pwr_domain_suspend_finish,
 	.system_off			= sunxi_system_off,
 	.system_reset			= sunxi_system_reset,
 	.system_reset2			= sunxi_system_reset2,
