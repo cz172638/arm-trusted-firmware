@@ -6,6 +6,11 @@
 
 BL31_SOURCES		+=	lib/cpus/${ARCH}/cortex_a53.S
 
+ifeq (${SUNXI_PSCI_USE_NATIVE},1)
+BL31_SOURCES		+=	${AW_PLAT}/common/sunxi_cpu_ops_a53.c	\
+				${AW_PLAT}/common/sunxi_native_pm_a53.c
+endif
+
 # A53 cores use GICv2
 USE_GIC_DRIVER			:=	2
 
