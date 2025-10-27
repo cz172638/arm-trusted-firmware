@@ -47,11 +47,6 @@ ifeq (${SUNXI_PSCI_USE_NATIVE}${SUNXI_PSCI_USE_SCPI},00)
 $(error "At least one of SCPI or native PSCI ops must be enabled")
 endif
 
-ifeq (${SUNXI_PSCI_USE_NATIVE},1)
-BL31_SOURCES		+=	${AW_PLAT}/common/sunxi_cpu_ops.c	\
-				${AW_PLAT}/common/sunxi_native_pm.c
-endif
-
 ifeq (${SUNXI_PSCI_USE_SCPI},1)
 BL31_SOURCES		+=	drivers/allwinner/sunxi_msgbox.c	\
 				drivers/arm/css/scpi/css_scpi.c		\
