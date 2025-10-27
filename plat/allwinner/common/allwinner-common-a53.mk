@@ -4,11 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
-include drivers/arm/gic/v2/gicv2.mk
+BL31_SOURCES		+=	lib/cpus/${ARCH}/cortex_a53.S
 
-BL31_SOURCES		+=	${GICV2_SOURCES}			\
-				lib/cpus/${ARCH}/cortex_a53.S		\
-				plat/common/plat_gicv2.c
+# A53 cores use GICv2
+USE_GIC_DRIVER			:=	2
 
 # Enable workarounds for Cortex-A53 errata. Allwinner uses at least r0p4.
 ERRATA_A53_835769		:=	1

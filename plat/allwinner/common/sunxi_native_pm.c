@@ -6,7 +6,6 @@
 
 #include <arch_helpers.h>
 #include <common/debug.h>
-#include <drivers/arm/gicv2.h>
 #include <drivers/delay_timer.h>
 #include <lib/mmio.h>
 #include <lib/psci/psci.h>
@@ -27,21 +26,15 @@ static int sunxi_pwr_domain_on(u_register_t mpidr)
 
 static void sunxi_pwr_domain_off(const psci_power_state_t *target_state)
 {
-	gicv2_cpuif_disable();
-
 	sunxi_cpu_power_off_self();
 }
 
 static void sunxi_pwr_domain_on_finish(const psci_power_state_t *target_state)
 {
-	gicv2_pcpu_distif_init();
-	gicv2_cpuif_enable();
 }
 
 static void sunxi_system_off(void)
 {
-	gicv2_cpuif_disable();
-
 	/* Attempt to power down the board (may not return) */
 	sunxi_power_down();
 
@@ -52,8 +45,6 @@ static void sunxi_system_off(void)
 
 static void __dead2 sunxi_system_reset(void)
 {
-	gicv2_cpuif_disable();
-
 	/* Reset the whole system when the watchdog times out */
 	mmio_write_32(SUNXI_WDOG0_CFG_REG, 1);
 	/* Enable the watchdog with the shortest timeout (0.5 seconds) */
