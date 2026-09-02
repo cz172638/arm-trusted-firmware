@@ -4,6 +4,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+# The R329 pairs just two cores.
+SUNXI_CPU_COUNT		:=	2
+
 # Without a management processor there is no SCPI support.
 SUNXI_PSCI_USE_SCPI	:=	0
 SUNXI_PSCI_USE_NATIVE	:=	1

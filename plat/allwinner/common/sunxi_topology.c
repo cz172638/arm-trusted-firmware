@@ -15,7 +15,7 @@ static const unsigned char plat_power_domain_tree_desc[PLAT_MAX_PWR_LVL + 1] = {
 	/* One node for each cluster */
 	PLATFORM_CLUSTER_COUNT,
 	/* One set of CPUs per cluster */
-	PLATFORM_MAX_CPUS_PER_CLUSTER,
+	PLATFORM_CORE_COUNT,
 };
 
 /*
