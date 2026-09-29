@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <assert.h>
+
 #include <platform_def.h>
 
 #include <arch_helpers.h>
@@ -15,7 +17,7 @@
 #include <rk3308_def.h>
 #include <soc.h>
 
-/* Peripherals: GRF .. GIC, DDR PHY and PMU included */
+/* Peripherals: GRF .. GIC, DDR PHY, PMU and DDR firewall included */
 #define RK3308_DEV_RNG0_BASE	0xff000000
 #define RK3308_DEV_RNG0_SIZE	0x00600000
 
@@ -51,7 +53,36 @@ static void secure_timer_init(void)
 	mmio_write_32(base + TIMER_CONTROL_REG, TIMER_EN | TIMER_FMODE);
 }
 
+/*
+ * Leave only the trusted RAM (BL31, 1MB aligned) secure and open the rest
+ * of DRAM to the normal world.
+ */
+static void secure_ddr_region(uint32_t rgn, uintptr_t st, size_t sz)
+{
+	uintptr_t ed = st + sz;
+
+	assert(rgn < FIREWALL_DDR_FW_DDR_RGN_NUM);
+	assert(st < ed);
+	assert((st % SIZE_M(1)) == 0);
+	assert((ed % SIZE_M(1)) == 0);
+
+	mmio_write_32(FIREWALL_DDR_BASE + FIREWALL_DDR_FW_DDR_RGN(rgn),
+		      RG_MAP_SECURE(ed / SIZE_M(1), st / SIZE_M(1)));
+}
+
+static void ddr_firewall_init(void)
+{
+	secure_ddr_region(0, TZRAM_BASE, TZRAM_SIZE);
+	/* only region 0 enabled */
+	mmio_write_32(FIREWALL_DDR_BASE + FIREWALL_DDR_FW_DDR_CON_REG, BIT(0));
+
+	INFO("%s: secure DRAM 0x%lx-0x%lx\n", __func__,
+	     (unsigned long)TZRAM_BASE,
+	     (unsigned long)(TZRAM_BASE + TZRAM_SIZE - 1));
+}
+
 void plat_rockchip_soc_init(void)
 {
 	secure_timer_init();
+	ddr_firewall_init();
 }

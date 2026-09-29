@@ -37,6 +37,8 @@
 #define PMU_SIZE		SIZE_K(64)
 #define GIC400_BASE		0xff580000
 #define GIC400_SIZE		SIZE_K(64)
+#define FIREWALL_DDR_BASE	0xff5f0000
+#define FIREWALL_DDR_SIZE	SIZE_K(64)
 
 /*
  * System SRAM. Its first 64K is remapped to the reset vector 0xffff0000

@@ -35,4 +35,17 @@
 #define TIMER_EN		0x1
 #define TIMER_FMODE		(0x0 << 1)
 
+/*
+ * DDR firewall, same layout as on PX30. After reset region 0 covers the
+ * whole address space (FW_DDR_RGN0 = 0x0fff0000) and is enabled
+ * (FW_DDR_CON = 1): all of DRAM is secure-only, so the normal world
+ * cannot even fetch its first instruction.
+ */
+#define FIREWALL_DDR_FW_DDR_RGN(i)	((i) * 0x4)
+#define FIREWALL_DDR_FW_DDR_MST(i)	(0x20 + (i) * 0x4)
+#define FIREWALL_DDR_FW_DDR_CON_REG	0x40
+#define FIREWALL_DDR_FW_DDR_RGN_NUM	8
+/* region in MB: top (exclusive) and base */
+#define RG_MAP_SECURE(top, base)	((((top) - 1) << 16) | (base))
+
 #endif /* SOC_H */
