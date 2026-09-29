@@ -112,9 +112,27 @@ static void sgrf_init(void)
 	dsb();
 }
 
+#if RK3308_JTAG
+/*
+ * Debug builds: make sure the debugger can stay attached. SGRF_SOC_CON0
+ * bits [4:0] are the debug enables (0x1f after reset, clearing them cuts
+ * off SWD; not described in the TRM v1.1) and GPIO1_C6/C7 carry SWCLK /
+ * SWDIO in function 4 (also the reset value).
+ */
+static void jtag_debug_init(void)
+{
+	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(0), SGRF_SOC_CON0_DBG);
+	mmio_write_32(GRF_BASE + GRF_GPIO1C_IOMUX_H, GRF_GPIO1C_JTAG);
+	INFO("%s: JTAG/SWD enabled on GPIO1_C6/C7\n", __func__);
+}
+#endif
+
 void plat_rockchip_soc_init(void)
 {
 	secure_timer_init();
 	ddr_firewall_init();
 	sgrf_init();
+#if RK3308_JTAG
+	jtag_debug_init();
+#endif
 }

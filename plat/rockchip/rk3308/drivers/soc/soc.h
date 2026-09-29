@@ -13,7 +13,12 @@
 #define GRF_CPU_STATUS1		0x0424
 #define CKECK_WFEI_MSK		0x11	/* standbywfe[3:0], standbywfi[7:4] */
 
+/* GRF: GPIO1_C6/C7 = JTAG_TCK/JTAG_TMS (function 4) */
+#define GRF_GPIO1C_IOMUX_H	0x0034
+#define GRF_GPIO1C_JTAG		0x0ff00440	/* hiword: [11:4] = 0x44 */
+
 /* SGRF */
+#define SGRF_SOC_CON0_DBG	0x001f001f	/* hiword: [4:0] debug enables */
 #define SGRF_SOC_CON(n)		((n) * 0x4)
 #define SGRF_SOC_CON0_REMAP	8	/* System SRAM at 0xffff0000 */
 #define SGRF_CON_TZMA_R0SIZE	0x08

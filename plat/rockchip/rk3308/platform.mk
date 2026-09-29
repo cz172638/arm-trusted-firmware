@@ -65,3 +65,9 @@ $(eval $(call add_define,PLAT_WARMBOOT_ADDR_NOT_ALIGN))
 ifdef RK3308_UART_BASE
 $(eval $(call add_define,RK3308_UART_BASE))
 endif
+
+# Keep the SoC debuggable over JTAG/SWD: debug enables in SGRF_SOC_CON0 and
+# GPIO1_C6/C7 muxed to JTAG_TCK/JTAG_TMS. On by default in DEBUG builds.
+RK3308_JTAG		?=	${DEBUG}
+$(eval $(call assert_boolean,RK3308_JTAG))
+$(eval $(call add_define,RK3308_JTAG))
