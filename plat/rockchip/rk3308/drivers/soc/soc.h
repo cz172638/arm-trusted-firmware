@@ -24,8 +24,38 @@
 #define SGRF_CON_TZMA_R0SIZE	0x08
 #define SGRF_CON_SECURE0	0x0c
 
+/*
+ * SGRF_SOFTRST_CON: bit 12 is aresetn_dmac1_req (TRM 2.5.7, only with
+ * aclk_bus <= 200 MHz); bit 11 is taken to be DMAC0 (the Rockchip BL31
+ * pulses both). Hiword register.
+ */
+#define SGRF_SOFTRST_CON	0x30
+#define SGRF_SRST_DMAC0		BIT(11)
+#define SGRF_SRST_DMAC1		BIT(12)
+#define SGRF_DMAC_SRST_MAX_HZ	200000000
+
+/*
+ * SGRF_DMAC_CON(n): DMAC tie-off signals, latched when the DMAC leaves
+ * reset (TRM 9.6). Offsets follow from the field widths of the Rockchip
+ * BL31 writes (CON4 at 0x50 ... CON9 at 0x64).
+ *   CON4[11:0]  DMAC0 boot_irq_ns	(hiword)
+ *   CON5[11:0]  DMAC0 boot_periph_ns
+ *   CON6[19:0]  DMAC0 boot_addr
+ *   CON7[3:0]   boot_from_pc / boot_manager_ns of DMAC0 [1:0], DMAC1 [3:2]
+ *   CON8[15:0]  DMAC1 boot_irq_ns	(hiword)
+ *   CON9[19:0]  DMAC1 boot_periph_ns
+ *   CON10[19:0] DMAC1 boot_addr
+ */
+#define SGRF_DMAC_CON(n)	(0x40 + (n) * 0x4)
+#define DMAC0_IRQ_NS_ALL	0x0fff
+#define DMAC0_PERIPH_NS_ALL	0x00000fff
+#define DMAC1_IRQ_NS_ALL	0xffff
+#define DMAC1_PERIPH_NS_ALL	0x000fffff
+
 /* CRU */
 #define CRU_MODE		0xa0
+#define CRU_CLKSEL_CON(n)	(0x100 + (n) * 0x4)
+#define ACLK_BUS_DIV_MASK	0x1f	/* CLKSEL_CON5[4:0] */
 #define CRU_GLB_SRST_FST	0xb8
 #define CRU_GLB_SRST_FST_VALUE	0xfdb9
 

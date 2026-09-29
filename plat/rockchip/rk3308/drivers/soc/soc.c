@@ -10,6 +10,7 @@
 
 #include <arch_helpers.h>
 #include <common/debug.h>
+#include <drivers/delay_timer.h>
 #include <lib/mmio.h>
 #include <lib/xlat_tables/xlat_tables_compat.h>
 
@@ -88,28 +89,66 @@ static void ddr_firewall_init(void)
 }
 
 /*
- * Secure configuration of the slaves and masters in SGRF, as done by the
+ * DMAC0/DMAC1: all interrupts and peripheral request interfaces
+ * non-secure (the TRM reset values, which the Rockchip BL31 also writes
+ * explicitly), then reset both controllers so they latch the tie-offs.
+ * The DMAC1 reset needs aclk_bus <= 200 MHz (TRM table 2-2); TPL runs it
+ * at DPLL/6 = 216.7 MHz, so halve it around the reset.
+ */
+static void dmac_security_init(void)
+{
+	uint32_t clksel5 = mmio_read_32(CRU_BASE + CRU_CLKSEL_CON(5));
+	uint32_t div = clksel5 & ACLK_BUS_DIV_MASK;
+	uint32_t slow = 2 * (div + 1) - 1;
+
+	if (slow > ACLK_BUS_DIV_MASK)
+		slow = ACLK_BUS_DIV_MASK;
+
+	mmio_write_32(SGRF_BASE + SGRF_DMAC_CON(4),
+		      BITS_WITH_WMASK(DMAC0_IRQ_NS_ALL, 0xfffU, 0));
+	mmio_write_32(SGRF_BASE + SGRF_DMAC_CON(5), DMAC0_PERIPH_NS_ALL);
+	mmio_write_32(SGRF_BASE + SGRF_DMAC_CON(8),
+		      BITS_WITH_WMASK(DMAC1_IRQ_NS_ALL, 0xffffU, 0));
+	mmio_write_32(SGRF_BASE + SGRF_DMAC_CON(9), DMAC1_PERIPH_NS_ALL);
+	dsb();
+
+	mmio_write_32(CRU_BASE + CRU_CLKSEL_CON(5),
+		      BITS_WITH_WMASK(slow, ACLK_BUS_DIV_MASK, 0));
+	dsb();
+	mmio_write_32(SGRF_BASE + SGRF_SOFTRST_CON,
+		      BITS_WITH_WMASK(1, 1, 11) | BITS_WITH_WMASK(1, 1, 12));
+	udelay(5);
+	mmio_write_32(SGRF_BASE + SGRF_SOFTRST_CON,
+		      BITS_WITH_WMASK(0, 1, 11) | BITS_WITH_WMASK(0, 1, 12));
+	dsb();
+	mmio_write_32(CRU_BASE + CRU_CLKSEL_CON(5),
+		      BITS_WITH_WMASK(div, ACLK_BUS_DIV_MASK, 0));
+
+	INFO("%s: DMAC0/1 non-secure, reset with aclk_bus div %u -> %u\n",
+	     __func__, div + 1, slow + 1);
+}
+
+/*
+ * Remaining secure configuration of slaves and masters, as done by the
  * Rockchip BL31 (rkbin rk3308_bl31_v2.28, values taken from its register
- * writes; the registers are not described in the TRM v1.1). Without it
+ * writes; these registers are not described in the TRM v1.1). Without it
  * e.g. UART0 is secure-only and U-Boot faults on its first access to it.
  *
- * SGRF_SOC_CON0 is not touched: its bits [4:0] (0x1f after reset) gate
- * debug, clearing them cuts off the debugger.
+ * SGRF_SOC_CON0 is not touched here: its bits [4:0] (0x1f after reset)
+ * gate debug, clearing them cuts off the debugger.
  */
 static void sgrf_init(void)
 {
 	mmio_write_32(SGRF_BASE + SGRF_CON_TZMA_R0SIZE, 0x03ff0008);
 	mmio_write_32(SGRF_BASE + SGRF_CON_SECURE0, 0xffffffff);
-	mmio_write_32(SGRF_BASE + 0x50, 0x0fff0fff);
-	mmio_write_32(SGRF_BASE + 0x54, 0x00000fff);
-	mmio_write_32(SGRF_BASE + 0x60, 0xffffffff);
-	mmio_write_32(SGRF_BASE + 0x64, 0x000fffff);
 	mmio_write_32(SGRF_BASE + 0x90, 0xffff0100);
 	mmio_write_32(SGRF_BASE + 0x94, 0xffff0400);
 	mmio_write_32(SGRF_BASE + 0x98, 0xffff0000);
 	mmio_write_32(SGRF_BASE + 0x9c, 0xffff8000);
 	mmio_write_32(SGRF_BASE + 0x100, 0xffff0000);
 	dsb();
+
+	dmac_security_init();
 }
 
 #if RK3308_JTAG
