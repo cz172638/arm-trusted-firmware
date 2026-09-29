@@ -21,8 +21,34 @@
 #define SGRF_SOC_CON0_DBG	0x001f001f	/* hiword: [4:0] debug enables */
 #define SGRF_SOC_CON(n)		((n) * 0x4)
 #define SGRF_SOC_CON0_REMAP	8	/* System SRAM at 0xffff0000 */
+/* TZMA region 0 size (secure part of System SRAM), value as rkbin sets it */
 #define SGRF_CON_TZMA_R0SIZE	0x08
-#define SGRF_CON_SECURE0	0x0c
+#define SGRF_TZMA_R0SIZE_RKBIN	0x03ff0008
+
+/*
+ * Master / slave security. Not described in the TRM v1.1; the semantics
+ * follow the PX30 SGRF (plat/rockchip/px30/drivers/secure), which the
+ * Rockchip BL31 values for RK3308 match:
+ *  - master security (con_secure0): 1 = non-secure. U-Boot SPL clears
+ *    bits 0x2b83 "to be secure access", the Rockchip BL31 sets all.
+ *  - slave security: hiword registers, 1 = secure; 0xffff0000 makes every
+ *    slave of the register non-secure. 5 x 16 slaves, bit assignment not
+ *    known yet (UART0 is one of the bits opened here).
+ */
+#define SGRF_MST_SECURE_CON	0x0c
+#define SGRF_MST_S_ALL_NS	0xffffffff
+
+#define SGRF_SLV_SECURE_CON0	0x90
+#define SGRF_SLV_SECURE_CON1	0x94
+#define SGRF_SLV_SECURE_CON2	0x98
+#define SGRF_SLV_SECURE_CON3	0x9c
+#define SGRF_SLV_SECURE_CON4	0x100
+#define SGRF_SLV_S_ALL_NS	0xffff0000
+
+/* slaves the Rockchip BL31 keeps secure (which ones is not known yet) */
+#define SGRF_SLV_CON0_KEEP_S	BIT(8)
+#define SGRF_SLV_CON1_KEEP_S	BIT(10)
+#define SGRF_SLV_CON3_KEEP_S	BIT(15)
 
 /*
  * SGRF_SOFTRST_CON: bit 12 is aresetn_dmac1_req (TRM 2.5.7, only with

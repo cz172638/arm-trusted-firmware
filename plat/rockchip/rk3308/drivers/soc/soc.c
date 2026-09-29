@@ -129,23 +129,27 @@ static void dmac_security_init(void)
 }
 
 /*
- * Remaining secure configuration of slaves and masters, as done by the
- * Rockchip BL31 (rkbin rk3308_bl31_v2.28, values taken from its register
- * writes; these registers are not described in the TRM v1.1). Without it
- * e.g. UART0 is secure-only and U-Boot faults on its first access to it.
+ * Master and slave security, as done by the Rockchip BL31 (rkbin
+ * rk3308_bl31_v2.28): all masters non-secure, all slaves non-secure except
+ * three it keeps secure. Without it e.g. UART0 is secure-only and U-Boot
+ * faults on its first access to it. See soc.h for the register semantics.
  *
  * SGRF_SOC_CON0 is not touched here: its bits [4:0] (0x1f after reset)
  * gate debug, clearing them cuts off the debugger.
  */
 static void sgrf_init(void)
 {
-	mmio_write_32(SGRF_BASE + SGRF_CON_TZMA_R0SIZE, 0x03ff0008);
-	mmio_write_32(SGRF_BASE + SGRF_CON_SECURE0, 0xffffffff);
-	mmio_write_32(SGRF_BASE + 0x90, 0xffff0100);
-	mmio_write_32(SGRF_BASE + 0x94, 0xffff0400);
-	mmio_write_32(SGRF_BASE + 0x98, 0xffff0000);
-	mmio_write_32(SGRF_BASE + 0x9c, 0xffff8000);
-	mmio_write_32(SGRF_BASE + 0x100, 0xffff0000);
+	mmio_write_32(SGRF_BASE + SGRF_CON_TZMA_R0SIZE, SGRF_TZMA_R0SIZE_RKBIN);
+	mmio_write_32(SGRF_BASE + SGRF_MST_SECURE_CON, SGRF_MST_S_ALL_NS);
+
+	mmio_write_32(SGRF_BASE + SGRF_SLV_SECURE_CON0,
+		      SGRF_SLV_S_ALL_NS | SGRF_SLV_CON0_KEEP_S);
+	mmio_write_32(SGRF_BASE + SGRF_SLV_SECURE_CON1,
+		      SGRF_SLV_S_ALL_NS | SGRF_SLV_CON1_KEEP_S);
+	mmio_write_32(SGRF_BASE + SGRF_SLV_SECURE_CON2, SGRF_SLV_S_ALL_NS);
+	mmio_write_32(SGRF_BASE + SGRF_SLV_SECURE_CON3,
+		      SGRF_SLV_S_ALL_NS | SGRF_SLV_CON3_KEEP_S);
+	mmio_write_32(SGRF_BASE + SGRF_SLV_SECURE_CON4, SGRF_SLV_S_ALL_NS);
 	dsb();
 
 	dmac_security_init();
