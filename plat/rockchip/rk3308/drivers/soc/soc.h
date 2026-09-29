@@ -16,6 +16,8 @@
 /* SGRF */
 #define SGRF_SOC_CON(n)		((n) * 0x4)
 #define SGRF_SOC_CON0_REMAP	8	/* System SRAM at 0xffff0000 */
+#define SGRF_CON_TZMA_R0SIZE	0x08
+#define SGRF_CON_SECURE0	0x0c
 
 /* CRU */
 #define CRU_MODE		0xa0
