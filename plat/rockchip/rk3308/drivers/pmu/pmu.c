@@ -13,6 +13,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include <platform_def.h>
 
@@ -231,10 +232,26 @@ int rockchip_soc_cores_pwr_dm_off(void)
 {
 	uint32_t cpu_id = plat_my_core_pos();
 
+#if RK3308_JTAG
+	/*
+	 * Debug builds: keep the core powered, it only waits in WFI
+	 * (psci_pwrdown_cpu_end_terminal) and stays reachable for the
+	 * debugger. CPU_ON then power-cycles its domain (core_pwr_pd) so it
+	 * restarts through the warm boot entry as usual.
+	 */
+	set_cpus_pwr_domain_cfg_info(cpu_id, core_pwr_pd);
+	NOTICE("PSCI CPU_OFF: cpu%u kept powered in WFI (RK3308_JTAG debug build)\n",
+	     cpu_id);
+#else
 	cpus_power_domain_off(cpu_id, core_pwr_wfi);
+#endif
 
 	return PSCI_E_SUCCESS;
 }
+
+#if RK3308_JTAG
+static bool suspend_warned[PLATFORM_CORE_COUNT];
+#endif
 
 int rockchip_soc_cores_pwr_dm_suspend(void)
 {
@@ -246,6 +263,21 @@ int rockchip_soc_cores_pwr_dm_suspend(void)
 	cpuson_entry_point[cpu_id] = plat_get_sec_entrypoint();
 	dsb();
 
+#if RK3308_JTAG
+	/*
+	 * A power-down CPU_SUSPEND cannot be turned into a plain WFI here: on
+	 * a Cortex-A35 (no hardware assisted coherency) PSCI treats a core
+	 * waking up from the power-down WFI as fatal. So the core does power
+	 * down; warn once per core so it shows up next to the debugger losing
+	 * it. Keep Linux out of CPU_SUSPEND with cpuidle.off=1 or the debug
+	 * overlay (CPU_SLEEP disabled).
+	 */
+	if (!suspend_warned[cpu_id]) {
+		suspend_warned[cpu_id] = true;
+		NOTICE("PSCI CPU_SUSPEND: cpu%u powers down, debugger loses it; use cpuidle.off=1\n",
+		     cpu_id);
+	}
+#endif
 	cpus_power_domain_off(cpu_id, core_pwr_wfi_int);
 
 	return PSCI_E_SUCCESS;

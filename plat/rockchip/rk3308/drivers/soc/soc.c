@@ -166,7 +166,7 @@ static void jtag_debug_init(void)
 {
 	mmio_write_32(SGRF_BASE + SGRF_SOC_CON(0), SGRF_SOC_CON0_DBG);
 	mmio_write_32(GRF_BASE + GRF_GPIO1C_IOMUX_H, GRF_GPIO1C_JTAG);
-	INFO("%s: JTAG/SWD enabled on GPIO1_C6/C7\n", __func__);
+	NOTICE("%s: JTAG/SWD enabled on GPIO1_C6/C7 (RK3308_JTAG debug build)\n", __func__);
 }
 #endif
 
