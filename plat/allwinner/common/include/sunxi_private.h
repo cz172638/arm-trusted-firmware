@@ -44,6 +44,7 @@ int sunxi_validate_ns_entrypoint(uintptr_t ns_entrypoint);
 
 int sunxi_pmic_setup(uint16_t socid, const void *fdt);
 void sunxi_security_setup(void);
+void sunxi_security_setup_core(unsigned int core);
 
 uint16_t sunxi_read_soc_id(void);
 void sunxi_set_gpio_out(char port, int pin, bool level_high);
