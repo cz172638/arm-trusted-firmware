@@ -71,6 +71,8 @@ static void sunxi_pwr_domain_on_finish(const psci_power_state_t *target_state)
 {
 	unsigned int core = plat_my_core_pos();
 
+	sunxi_security_setup_core(core);
+
 	mmio_clrbits_32(HOTPLUG_CONTROL_REG(core), GIC_WAKEUP_DISABLE);
 }
 
