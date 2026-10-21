@@ -12,6 +12,12 @@
 					DEVICE0_SIZE,			\
 					MT_DEVICE | MT_RW | MT_SECURE)
 
+#if A3700_CCI_SIP
+/* CCI-400 registers, for the CCI SiP calls */
+#define MAP_CCI		MAP_REGION_FLAT(MVEBU_CCI_BASE, 0x10000,	\
+					MT_DEVICE | MT_RW | MT_SECURE)
+#endif
+
 /*
  * Table of regions for various BL stages to map using the MMU.
  */
@@ -41,6 +47,9 @@ const mmap_region_t plat_marvell_mmap[] = {
 	MARVELL_MAP_SHARED_RAM,
 	MAP_DEVICE0,
 	MARVELL_MAP_DRAM,
+#if A3700_CCI_SIP
+	MAP_CCI,
+#endif
 	{0}
 };
 #endif

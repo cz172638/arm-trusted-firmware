@@ -7,6 +7,7 @@
 
 #include <common/debug.h>
 #include <common/runtime_svc.h>
+#include <lib/mmio.h>
 #include <lib/smccc.h>
 
 #include <marvell_plat_priv.h>
@@ -21,6 +22,11 @@
 
 /* Miscellaneous FID's' */
 #define MV_SIP_DRAM_SIZE	0x82000010
+
+/* CCI-400 register access for the non-secure world (A3700_CCI_SIP) */
+#define MV_SIP_CCI_READ		0x82000020	/* x1: offset -> x1: value */
+#define MV_SIP_CCI_WRITE	0x82000021	/* x1: offset, x2: value */
+#define MV_CCI_SIZE		0x10000
 
 /* This macro is used to identify COMPHY related calls from SMC function ID */
 #define is_comphy_fid(fid)	\
@@ -66,6 +72,20 @@ uintptr_t mrvl_sip_smc_handler(uint32_t smc_fid,
 		/* x1:  ap_base_addr */
 		ret = mvebu_get_dram_size(MVEBU_REGS_BASE);
 		SMC_RET1(handle, ret);
+
+#if A3700_CCI_SIP
+	case MV_SIP_CCI_READ:
+		if (x1 >= MV_CCI_SIZE || (x1 & 3U) != 0U) {
+			SMC_RET1(handle, SMC_UNK);
+		}
+		SMC_RET2(handle, 0, mmio_read_32(MVEBU_CCI_BASE + x1));
+	case MV_SIP_CCI_WRITE:
+		if (x1 >= MV_CCI_SIZE || (x1 & 3U) != 0U) {
+			SMC_RET1(handle, SMC_UNK);
+		}
+		mmio_write_32(MVEBU_CCI_BASE + x1, (uint32_t)x2);
+		SMC_RET1(handle, 0);
+#endif
 
 	default:
 		ERROR("%s: unhandled SMC (0x%x)\n", __func__, smc_fid);

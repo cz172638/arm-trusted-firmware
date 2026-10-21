@@ -28,6 +28,10 @@ $(eval $(call add_define,USE_CCI))
 A3700_CCI_NS_ACCESS		?= 0
 $(eval $(call assert_boolean,A3700_CCI_NS_ACCESS))
 $(eval $(call add_define,A3700_CCI_NS_ACCESS))
+# CCI-400 register access through SiP calls (BL31 maps the CCI)
+A3700_CCI_SIP			?= 0
+$(eval $(call assert_boolean,A3700_CCI_SIP))
+$(eval $(call add_define,A3700_CCI_SIP))
 
 # Include GICv3 driver files
 include drivers/arm/gic/v3/gicv3.mk
