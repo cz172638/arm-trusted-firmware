@@ -33,10 +33,11 @@ void plat_marvell_interconnect_init(void)
 
 	cci_init(PLAT_MARVELL_CCI_BASE, cci_map, ARRAY_SIZE(cci_map));
 
-#if A3700_CCI_NS_ACCESS
+#if A3700_CCI_NS_ACCESS && defined(IMAGE_BL1)
 	/*
 	 * Let the non-secure world program the CCI (snoop control, shareable
-	 * override, QoS), e.g. to set up I/O coherency from the OS.
+	 * override, QoS), e.g. to set up I/O coherency from the OS. Once,
+	 * in BL1: BL31 hung in its early setup when it wrote it again.
 	 */
 	mmio_write_32(PLAT_MARVELL_CCI_BASE + SECURE_ACCESS_REG, 1);
 #endif
