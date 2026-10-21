@@ -24,6 +24,10 @@ $(eval $(call add_define,CONFIG_GICV3))
 
 # CCI-400
 $(eval $(call add_define,USE_CCI))
+# Non-secure access to the CCI-400 registers
+A3700_CCI_NS_ACCESS		?= 0
+$(eval $(call assert_boolean,A3700_CCI_NS_ACCESS))
+$(eval $(call add_define,A3700_CCI_NS_ACCESS))
 
 # Include GICv3 driver files
 include drivers/arm/gic/v3/gicv3.mk

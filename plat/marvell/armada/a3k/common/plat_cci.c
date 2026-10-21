@@ -32,4 +32,12 @@ void plat_marvell_interconnect_init(void)
 	mmio_write_32(CPU_DEC_CCI_BASE_REG, MVEBU_CCI_BASE >> 20);
 
 	cci_init(PLAT_MARVELL_CCI_BASE, cci_map, ARRAY_SIZE(cci_map));
+
+#if A3700_CCI_NS_ACCESS
+	/*
+	 * Let the non-secure world program the CCI (snoop control, shareable
+	 * override, QoS), e.g. to set up I/O coherency from the OS.
+	 */
+	mmio_write_32(PLAT_MARVELL_CCI_BASE + SECURE_ACCESS_REG, 1);
+#endif
 }
