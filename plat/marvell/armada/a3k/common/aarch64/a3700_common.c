@@ -18,6 +18,14 @@
 					MT_DEVICE | MT_RW | MT_SECURE)
 #endif
 
+#if A3700_DBG_SIP
+/* Debug APB (CPU decode window target 3, 0x80000000), for the debug SiP calls */
+#define MVEBU_DBG_BASE	0x80000000UL
+#define MVEBU_DBG_SIZE	0x01000000UL
+#define MAP_DBG		MAP_REGION_FLAT(MVEBU_DBG_BASE, MVEBU_DBG_SIZE,	\
+					MT_DEVICE | MT_RW | MT_SECURE)
+#endif
+
 /*
  * Table of regions for various BL stages to map using the MMU.
  */
@@ -49,6 +57,9 @@ const mmap_region_t plat_marvell_mmap[] = {
 	MARVELL_MAP_DRAM,
 #if A3700_CCI_SIP
 	MAP_CCI,
+#endif
+#if A3700_DBG_SIP
+	MAP_DBG,
 #endif
 	{0}
 };

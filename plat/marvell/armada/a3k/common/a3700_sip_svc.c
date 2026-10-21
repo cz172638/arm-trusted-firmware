@@ -28,6 +28,12 @@
 #define MV_SIP_CCI_WRITE	0x82000021	/* x1: offset, x2: value */
 #define MV_CCI_SIZE		0x10000
 
+/* Debug APB (0x80000000) access for the non-secure world (A3700_DBG_SIP) */
+#define MV_SIP_DBG_READ		0x82000022	/* x1: offset -> x1: value */
+#define MV_SIP_DBG_WRITE	0x82000023	/* x1: offset, x2: value */
+#define MV_DBG_BASE		0x80000000UL
+#define MV_DBG_SIZE		0x01000000UL
+
 /* This macro is used to identify COMPHY related calls from SMC function ID */
 #define is_comphy_fid(fid)	\
 	((fid) >= MV_SIP_COMPHY_POWER_ON && (fid) <= MV_SIP_COMPHY_PLL_LOCK)
@@ -84,6 +90,20 @@ uintptr_t mrvl_sip_smc_handler(uint32_t smc_fid,
 			SMC_RET1(handle, SMC_UNK);
 		}
 		mmio_write_32(MVEBU_CCI_BASE + x1, (uint32_t)x2);
+		SMC_RET1(handle, 0);
+#endif
+
+#if A3700_DBG_SIP
+	case MV_SIP_DBG_READ:
+		if (x1 >= MV_DBG_SIZE || (x1 & 3U) != 0U) {
+			SMC_RET1(handle, SMC_UNK);
+		}
+		SMC_RET2(handle, 0, mmio_read_32(MV_DBG_BASE + x1));
+	case MV_SIP_DBG_WRITE:
+		if (x1 >= MV_DBG_SIZE || (x1 & 3U) != 0U) {
+			SMC_RET1(handle, SMC_UNK);
+		}
+		mmio_write_32(MV_DBG_BASE + x1, (uint32_t)x2);
 		SMC_RET1(handle, 0);
 #endif
 

@@ -51,7 +51,7 @@
 #  define PLAT_MARVELL_MMAP_ENTRIES	8
 #endif
 #if defined(IMAGE_BL31)
-#define PLAT_MARVELL_MMAP_ENTRIES	5
+#define PLAT_MARVELL_MMAP_ENTRIES	(6 + A3700_DBG_SIP)
 #endif
 
 /*
@@ -64,7 +64,8 @@
 #elif defined(IMAGE_BL2)
 #  define MAX_XLAT_TABLES		4
 #elif defined(IMAGE_BL31)
-# define MAX_XLAT_TABLES		4
+/* one more for the debug APB window (A3700_DBG_SIP) */
+# define MAX_XLAT_TABLES		(4 + A3700_DBG_SIP)
 #elif defined(IMAGE_BL32)
 #  define MAX_XLAT_TABLES		4
 #endif
