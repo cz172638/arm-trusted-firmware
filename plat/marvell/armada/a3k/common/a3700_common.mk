@@ -32,6 +32,9 @@ $(eval $(call add_define,A3700_CCI_NS_ACCESS))
 A3700_CCI_SIP			?= 0
 $(eval $(call assert_boolean,A3700_CCI_SIP))
 $(eval $(call add_define,A3700_CCI_SIP))
+# BL33 load address
+A3700_NS_IMAGE_OFFSET		?= 0x0
+$(eval $(call add_define,A3700_NS_IMAGE_OFFSET))
 # Debug APB (0x80000000, 16 MiB) access through SiP calls (BL31 maps it)
 A3700_DBG_SIP			?= 0
 $(eval $(call assert_boolean,A3700_DBG_SIP))

@@ -11,6 +11,13 @@
 #include <marvell_def.h>
 #include <plat/common/platform.h>
 
+/* BL33 entry: DRAM base, or where the platform moves it (A3700_NS_IMAGE_OFFSET) */
+#ifdef A3700_NS_IMAGE_OFFSET
+#define MARVELL_BL33_BASE	(MARVELL_DRAM_BASE + A3700_NS_IMAGE_OFFSET)
+#else
+#define MARVELL_BL33_BASE	MARVELL_DRAM_BASE
+#endif
+
 /*******************************************************************************
  * Following descriptor provides BL image/ep information that gets used
  * by BL2 to load the images and also subset of this information is
@@ -152,12 +159,12 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
 			VERSION_2, image_info_t, IMAGE_ATTRIB_SKIP_LOADING),
 # else
-		.ep_info.pc = MARVELL_DRAM_BASE,
+		.ep_info.pc = MARVELL_BL33_BASE,
 
 		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
 			VERSION_2, image_info_t, 0),
-		.image_info.image_base = MARVELL_DRAM_BASE,
-		.image_info.image_max_size = MARVELL_DRAM_SIZE,
+		.image_info.image_base = MARVELL_BL33_BASE,
+		.image_info.image_max_size = MARVELL_DRAM_SIZE - (MARVELL_BL33_BASE - MARVELL_DRAM_BASE),
 # endif /* PRELOADED_BL33_BASE */
 
 		.next_handoff_image_id = INVALID_IMAGE_ID,

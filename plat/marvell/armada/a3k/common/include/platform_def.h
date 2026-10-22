@@ -155,7 +155,10 @@
 /*
  * Load address of BL3-3 for this platform port
  */
-#define PLAT_MARVELL_NS_IMAGE_OFFSET		0x0
+/* BL33 load/entry address; A3700_NS_IMAGE_OFFSET moves it (e.g. above a
+ * low DDR area kept for PCIe endpoint BARs, which land at DDR 0)
+ */
+#define PLAT_MARVELL_NS_IMAGE_OFFSET		A3700_NS_IMAGE_OFFSET
 
 /* System Reference Clock*/
 #define PLAT_REF_CLK_IN_HZ			COUNTER_FREQUENCY
