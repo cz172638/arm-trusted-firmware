@@ -10,6 +10,7 @@
 
 #include <cdn_dp.h>
 #include <dfs.h>
+#include <m0_ns.h>
 #include <plat_sip_calls.h>
 #include <rockchip_sip_svc.h>
 
@@ -62,7 +63,13 @@ uintptr_t rockchip_plat_sip_handler(uint32_t smc_fid,
 
 	switch (smc_fid) {
 	case RK_SIP_DDR_CFG:
+		/* DDR DFS runs on the PMU M0, refuse while the NS world owns it. */
+		if (m0_pmu_ns_owned()) {
+			SMC_RET1(handle, SMC_UNK);
+		}
 		SMC_RET1(handle, ddr_smc_handler(x1, x2, x3, x4));
+	case RK_SIP_M0_CTRL:
+		SMC_RET1(handle, (uint32_t)m0_ns_ctrl(x1, x2, x3, x4));
 #ifdef PLAT_RK_DP_HDCP
 	case RK_SIP_HDCP_CONTROL:
 		SMC_RET1(handle, dp_hdcp_ctrl(x1));
