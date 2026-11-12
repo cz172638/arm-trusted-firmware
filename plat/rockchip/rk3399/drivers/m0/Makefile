@@ -97,7 +97,7 @@ $(LINKERFILE): $(LINKERFILE_SRC)
 
 $(ELF) : $(OBJS) $(OBJS_COMMON) $(LINKERFILE)
 	$(s)echo "  LD      $@"
-	$(q)$($(ARCH)-ld) -o $@ $(COMMON_FLAGS) $(LDFLAGS) -Wl,-Map=$(MAPFILE) -Wl,-T$(LINKERFILE) $(OBJS) $(OBJS_COMMON)
+	$(q)$($(ARCH)-ld) -o $@ $(COMMON_FLAGS) $(LDFLAGS) -Wl,-Map=$(MAPFILE) -T$(LINKERFILE) $(OBJS) $(OBJS_COMMON)
 
 $(BIN) $(BIN_PMU): %.bin: %.elf
 	$(s)echo "  BIN     $@"
@@ -105,7 +105,7 @@ $(BIN) $(BIN_PMU): %.bin: %.elf
 
 $(ELF_PMU) : $(OBJS_COMMON) $(OBJS_PMU) $(LINKERFILE)
 	$(s)echo "  LD      $@"
-	$(q)$($(ARCH)-ld) -o $@ $(COMMON_FLAGS) $(LDFLAGS) -Wl,-Map=$(MAPFILE_PMU) -Wl,-T$(LINKERFILE) $(OBJS_PMU) $(OBJS_COMMON)
+	$(q)$($(ARCH)-ld) -o $@ $(COMMON_FLAGS) $(LDFLAGS) -Wl,-Map=$(MAPFILE_PMU) -T$(LINKERFILE) $(OBJS_PMU) $(OBJS_COMMON)
 
 $(call MAKE_OBJS,$(BUILD),$(SOURCES_COMMON),$(1))
 $(call MAKE_OBJS,$(BUILD),$(SOURCES),$(1))
