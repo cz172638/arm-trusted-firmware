@@ -24,3 +24,10 @@ HW_ASSISTED_COHERENCY		:=	1
 
 SUNXI_NEW_MPIDR_FMT		:=	1
 $(eval $(call add_define,SUNXI_NEW_MPIDR_FMT))
+
+# Cortex-A55 (DynamIQ) cores use the MPIDR affinity layout with the core
+# number in Aff1, which needs a separate set of native PSCI CPU ops.
+ifeq (${SUNXI_PSCI_USE_NATIVE},1)
+BL31_SOURCES		:=	$(filter-out ${AW_PLAT}/common/sunxi_cpu_ops.c,${BL31_SOURCES}) \
+				${AW_PLAT}/common/sunxi_cpu_new_ops.c
+endif

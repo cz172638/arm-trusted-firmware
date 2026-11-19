@@ -52,7 +52,7 @@ static void sunxi_cpu_enable_power(unsigned int cluster, unsigned int core)
 }
 
 /* We can't turn ourself off like this, but it works for other cores. */
-static void sunxi_cpu_off(u_register_t mpidr)
+void sunxi_cpu_off(u_register_t mpidr)
 {
 	unsigned int cluster = MPIDR_AFFLVL1_VAL(mpidr);
 	unsigned int core    = MPIDR_AFFLVL0_VAL(mpidr);
