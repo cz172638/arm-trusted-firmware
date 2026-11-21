@@ -108,7 +108,17 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 void bl31_plat_arch_setup(void)
 {
 	sunxi_configure_mmu_el3(0);
+#if USE_GIC_DRIVER == 3
+	/* bl31_main() initialises the GIC before bl31_platform_setup() */
+	gic_set_gicr_frames(sunxi_gicr_base_addrs);
+#endif
 }
+
+#if USE_GIC_DRIVER == 3
+void plat_gic_pre_pcpu_init(unsigned int cpu_idx)
+{
+}
+#endif
 
 void bl31_platform_setup(void)
 {
@@ -179,10 +189,6 @@ void bl31_platform_setup(void)
 		mmio_write_32(SUNXI_CCU_BASE + 0x5c, 0x1);
 
 	sunxi_pmic_setup(soc_id, fdt);
-
-#if USE_GIC_DRIVER == 3
-	gic_set_gicr_frames(sunxi_gicr_base_addrs);
-#endif
 
 	INFO("BL31: Platform setup done\n");
 }
