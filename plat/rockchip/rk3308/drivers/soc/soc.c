@@ -11,6 +11,8 @@
 #include <arch_helpers.h>
 #include <common/debug.h>
 #include <drivers/delay_timer.h>
+#include <drivers/arm/gic_common.h>
+#include <drivers/arm/gicv2.h>
 #include <lib/mmio.h>
 #include <lib/xlat_tables/xlat_tables_compat.h>
 
@@ -170,8 +172,48 @@ static void jtag_debug_init(void)
 }
 #endif
 
+/*
+ * The BootROM leaves an interrupt active in the CPU interface when it
+ * hands over after a USB (maskrom) boot: the running priority stays at
+ * that Secure value and no Non-secure interrupt is ever signalled to the
+ * normal world (GICC_RPR reads 0 there, the timer PPI stays pending).
+ * End every active interrupt and clear the active priorities before the
+ * GIC is set up.
+ */
+#define GICC_APR(n)	(0xd0U + 4U * (n))
+#define GICC_NSAPR(n)	(0xe0U + 4U * (n))
+
+static void gic_clear_active(void)
+{
+	uint32_t n = 0U;
+
+	for (uint32_t r = 0U; r < 1020U / 32U; r++) {
+		uint32_t act = mmio_read_32(RK3308_GICD_BASE + GICD_ISACTIVER + 4U * r);
+
+		for (uint32_t b = 0U; b < 32U; b++) {
+			if ((act & BIT_32(b)) != 0U) {
+				mmio_write_32(RK3308_GICC_BASE + GICC_EOIR, 32U * r + b);
+				n++;
+			}
+		}
+		if (act != 0U) {
+			INFO("%s: GICD_ISACTIVER%u %08x\n", __func__, r, act);
+			mmio_write_32(RK3308_GICD_BASE + GICD_ICACTIVER + 4U * r, act);
+		}
+	}
+	for (uint32_t i = 0U; i < 4U; i++) {
+		mmio_write_32(RK3308_GICC_BASE + GICC_APR(i), 0U);
+		mmio_write_32(RK3308_GICC_BASE + GICC_NSAPR(i), 0U);
+	}
+	if (n != 0U) {
+		NOTICE("%s: ended %u active interrupt(s) left by the boot ROM\n",
+		       __func__, n);
+	}
+}
+
 void plat_rockchip_soc_init(void)
 {
+	gic_clear_active();
 	secure_timer_init();
 	ddr_firewall_init();
 	sgrf_init();
